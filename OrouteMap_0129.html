@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Route Map</title>
+
+    <link rel="stylesheet" type="text/css" href="common/css/optimal.css">
+
+    <!-- Bootstrap -->
+    <link href="../vendors/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
+    <!-- <link href="../vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"> -->
+    <!-- Font Awesome -->
+    <link href="../vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="../vendors/nprogress/nprogress.css" rel="stylesheet">
+    <!-- iCheck -->
+    <link href="../vendors/iCheck/skins/flat/green.css" rel="stylesheet">
+    <!-- Datatables -->
+    <link href="../vendors/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <link href="../vendors/datatables.net-buttons-bs/css/buttons.bootstrap.min.css" rel="stylesheet">
+    <link href="../vendors/datatables.net-fixedheader-bs/css/fixedHeader.bootstrap.min.css" rel="stylesheet">
+    <link href="../vendors/datatables.net-responsive-bs/css/responsive.bootstrap.min.css" rel="stylesheet">
+    <link href="../vendors/datatables.net-scroller-bs/css/scroller.bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom Theme Style -->
+    <!-- <link href="../build/css/custom.min.css" rel="stylesheet"> -->
+    <link href="../build/css/custom.css" rel="stylesheet">
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC_cDPalUZDAQEDM0qJBYAmHlWm1wqTnsY&libraries=drawing&callback=initMap"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/geocode/json?key=AIzaSyC_cDPalUZDAQEDM0qJBYAmHlWm1wqTnsY"></script>
+    <style>
+    /* #gmap_canvas{
+      position: relative;
+      width: 100%;
+      height: 65%;
+    } */
+    .fixedmenu{
+      position: fixed;
+      top: 0px;
+      z-index: 1;
+    }
+    .float{
+    	position:fixed;
+    	width:80px;
+    	height:80px;
+    	bottom:56px;
+    	right:120px;
+    	background-color:#0C9;
+    	color:#FFF;
+    	border-radius:50px;
+    	text-align:center;
+    	box-shadow: 2px 2px 3px #999;
+    }
+
+    #mapPanelList {
+			position: absolute;
+			top: 80px;
+			left: 15px;
+      height: 36px;
+      width: 300px;
+      /* border: 2px solid #00BFFF;
+			background: #FFFFFF; */
+			opacity:0.7;
+		}
+
+    .mapControllerHor {
+			position: absolute;
+			top: 20px;
+			right: 110px;
+			height: 36px;
+			border: 2px solid #00BFFF;
+			background: #FFFFFF;
+			opacity:0.8;
+		}
+
+		.mapControllerHor ul{
+			overflow: hidden;
+			padding: 2px;
+			list-style: none;
+		}
+
+		.mapControllerHor ul li{
+			float: left;
+			list-style: none;
+		}
+
+		.mapControllerHor ul li:hover{
+			background-color: #00BFFF;
+		}
+		.mapControllerHor ul li.cT{
+			padding: 3px;
+		}
+
+    .mapControllerVer{
+			position: absolute;
+			top: 78px;
+			right: 100px;
+			height: 100px;
+			border: 2px solid #00BFFF;
+			background: #e5e5e5;
+			opacity:0.8;
+		}
+		.mapControllerVer ul{
+			overflow: hidden;
+			padding: 2px;
+			list-style: none;
+		}
+		.mapControllerVer ul li{
+			list-style: none;
+		}
+		.mapControllerVer ul li:hover{
+			background-color: #00BFFF;
+		}
+		.mapControllerVer ul li.cT{
+			padding: 3px;
+		}
+
+    #mapPanelOthers{
+			position: absolute;
+			top: 56px;
+			right: 100px;
+			z-index: 100;
+			border: 2px solid #FFFACD;
+			width: 150px;
+			display: none;
+		}
+
+		#mapPanelOptions{
+			position: absolute;
+			top: 120px;
+			right: 115px;
+			z-index: 100;
+			border: 2px solid #FFFACD;
+			width: 150px;
+			display: none;
+		}
+
+    .detailPanel{
+      position: fixed;
+      top: 120px;
+      width: 80%;
+      /* display: none; */
+    }
+
+    </style>
+    <script>
+    var qs = (function(a) {
+        if (a == "") return {};
+        var b = {};
+        for (var i = 0; i < a.length; ++i)
+        {
+            var p=a[i].split('=', 2);
+            if (p.length == 1)
+                b[p[0]] = "";
+            else
+                b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+        }
+        return b;
+    })(window.location.search.substr(1).split('&'));
+    // var ECA_Hawaii = null;
+    function initialize() {
+        var gmapOptions = {
+          zoom: 3,
+          center: new google.maps.LatLng(19.70, 160.62),
+          // mapTypeId : google.maps.MapTypeId.ROADMAP
+          mapTypeId: google.maps.MapTypeId.TERRAIN
+          // mapTypeId: google.maps.MapTypeId.SATELLITE
+        }
+        gmap = new google.maps.Map(document.getElementById('gmap_canvas'), gmapOptions);
+        geocoder = new google.maps.Geocoder();
+        // const autocomplete = new google.maps.places.Autocomplete(input);
+
+        google.maps.event.addListener(gmap, 'mousemove', function(event){
+          var Center = gmap.getCenter();
+          var MousePos = event.latLng;
+          document.getElementById("map_msg").innerHTML = "<font color='white'>Zoom Level: " + gmap.getZoom() + ", Map Center:" + Center.lat() +","+ Center.lng()+" ,Selected Location:" + MousePos.lat() +"," + MousePos.lng() +"</font>";
+        });
+
+        //지도 클릭 이벤트
+        var eventMarkers = [];
+        google.maps.event.addListener(gmap, 'click', function(event){
+          // alert(eventMarkers.length);
+          if(eventMarkers.length > 0)
+          for(var i =0;i< eventMarkers.length; i++){
+            eventMarkers[i].setMap(null);
+          }
+          eventMarkers.length = 0;
+
+          var marker = new google.maps.Marker({
+    				position: event.latLng,
+    				map: gmap,
+    			});
+          eventMarkers.push(marker);
+          const info = new google.maps.InfoWindow();
+          geocodeLatLng(geocoder, gmap, event.latLng, info);
+        });
+        const drawingManager = new google.maps.drawing.DrawingManager({
+          drawingMode: google.maps.drawing.OverlayType.MARKER,
+          drawingControl: true,
+          drawingControlOptions: {
+            position: google.maps.ControlPosition.TOP_CENTER,
+            drawingModes: [
+              google.maps.drawing.OverlayType.MARKER,
+              google.maps.drawing.OverlayType.CIRCLE,
+              google.maps.drawing.OverlayType.POLYGON,
+              google.maps.drawing.OverlayType.POLYLINE,
+              google.maps.drawing.OverlayType.RECTANGLE,
+            ],
+          },
+          markerOptions: {
+            icon: "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
+          },
+          circleOptions: {
+            fillColor: "#ffff00",
+            fillOpacity: 1,
+            strokeWeight: 5,
+            clickable: false,
+            editable: true,
+            zIndex: 1,
+          },
+        });
+        // drawingManager.setMap(gmap);
+
+        ViewECA();
+
+    }
+
+    google.maps.event.addDomListener(window, 'load', initialize);
+
+    function search(searchString){
+        var geocoder = new google.maps.Geocoder();
+        var point = null;
+        alert(searchString);
+        geocoder.geocode({'address' : searchString}, function(results, status){
+          if (status == google.maps.GeocoderStatus.OK) {
+            gmap.setZoom(14);
+            gmap.setCenter(results[0].geometry.location);
+            lat = results[0].geometry.location.lat();
+            lng = results[0].geometry.location.lng();
+            point = new google.maps.LatLng(lat, lng);
+            var marker = new google.maps.Marker({
+              map: gmap,
+              position: point,
+              title: searchString //tooltip으로 표시됨
+            });
+
+            var LocBuffer;
+
+            var BufferOptions = {
+              strokeColor: "#FF0000",
+              strokeOpacity: 0.8,
+              strokeWeight: 2,
+              fillColor: "#FF0000",
+              fillOpacity: 0.35,
+              map: gmap,
+              center: point,
+              radius: 2000
+            };
+
+            var BufferOptions_1 = {
+              strokeColor: "#FF0000",
+              strokeOpacity: 0.8,
+              strokeWeight: 2,
+              fillColor: "#FF0000",
+              fillOpacity: 0.35,
+              map: gmap,
+              center: point,
+              radius: 1000
+            };
+
+            LocBuffer = new google.maps.Circle(BufferOptions);
+            LocBuffer_1 = new google.maps.Circle(BufferOptions_1);
+
+            var LatLngDist = convertLatLngtoDist(lat.toFixed(3),lng.toFixed(3));
+            var latDist = LatLngDist.latDist;
+            var lngDist = LatLngDist.lngDist;
+            var distContents = "<div class = 'item'> 반경 2Km 이내의 노출원은 다음과 같습니다.<br />";
+            var foundSource = 0;
+            }
+            else{
+              alert(searchString + "찾을 수 없습니다.");
+            }
+          });
+    }
+
+
+    function moveFocus(element){
+      if(event.keyCode == 13){
+        document.getElementById(element).focus();
+      }
+    }
+
+    function geocodeLatLng(geocoder, map, elatlng, info){
+      const input = elatlng;
+      // alert(input.lat());
+      // const latlngStr = input.split(",", 2);
+      const latlng = {
+        // lat: parseFloat(latlngStr[0]),
+        // lng: parseFloat(latlngStr[1]),
+        lat: input.lat(),
+        lng: input.lng(),
+      };
+      var err_flag = 0;
+      var res1;
+
+      geocoder
+        .geocode({ location: latlng })
+        .then((response) => {
+          if (response.results[0]) {
+            alert("res:"+JSON.stringify(response));
+            res = response.results[0];
+            const marker = new google.maps.Marker({
+              position: latlng,
+              map: gmap,
+            });
+            try{
+              res1 = response.results[1].formatted_address;
+            } catch(err){
+              err_flag = 1;
+            }
+            if(res1 == 'Japan' | err_flag == 1) alert('water');
+
+            // if(response.results[1].formatted_address == 'japan' | ){
+            //
+            // }
+            // for(var key in res){
+            //   alert("attr: "+ key + ", value: " + res[key]);
+            // }
+            // alert(res);
+            // alert(JSON.stringify(response.results[1]));
+            // info.setContent(JSON.stringify(res));
+            // info.setContent(JSON.stringify(response.results[1]));
+            info.setContent(response.results[1].formatted_address);
+            info.open(gmap, marker);
+          } else {
+            window.alert("No results found");
+          }
+        })
+        .catch((e) => window.alert("Geocoder failed due to: " + e));
+    }
+
+    function convertLatLngtoDist(lat, lng){
+      // alert("aaa");
+      // var lat3 = lat.toFixed(3);
+      // var lng3 = lng.toFixed(3);
+      // alert(lat3 +","+lng3);
+  		var latDeg = parseInt(lat);
+  		var latMin = parseInt((lat-latDeg)*60);
+  		var latSec = ((lat-latDeg)*60-latMin)*60;
+  		var lngDeg = parseInt(lng);
+  		var lngMin = parseInt((lng-lngDeg)*60);
+  		var lngSec = ((lng-lngDeg)*60-lngMin)*60;
+  		var latDist = (latDeg*3600 + latMin*60 + latSec)*30.8;
+  		var lngDist = (lngDeg*3600 + lngMin*60 + lngSec)*24.69;
+  		return {
+  			latDist: latDist,
+  			lngDist: lngDist
+  		};
+  	}
+
+    </script>
+
+  </head>
+
+  <body class="nav-md">
+    <div class="container body">
+      <div class="main_container">
+        <div class="col-md-3 left_col">
+          <div class="left_col scroll-view">
+            <div class="navbar nav_title" style="border: 0;">
+              <a href="#" class="site_title"> <span>KJENG<small>&nbsp;&nbsp;Optimal Route</small></span></a>
+            </div>
+
+            <div class="clearfix"></div>
+
+            <!-- menu profile quick info -->
+            <!-- <div class="profile clearfix">
+              <div class="profile_pic">
+                <img src="images/img.jpg" alt="..." class="img-circle profile_img">
+              </div>
+              <div class="profile_info">
+                <span>Welcome,</span>
+                <h2><%= user %></h2>
+              </div>
+            </div> -->
+            <!-- /menu profile quick info -->
+
+            <br />
+
+            <!-- sidebar menu -->
+            <div id="sidebar"></div>
+            <!-- /sidebar menu -->
+
+            <!-- /menu footer buttons -->
+            <div class="sidebar-footer hidden-small">
+            </div>
+            <!-- /menu footer buttons -->
+          </div>
+        </div>
+
+
+        <!-- top navigation -->
+        <!-- <div class="top_nav">
+          <div class="nav_menu">
+            <nav>
+              <div class="fixedmenu">
+                <div class="nav toggle">
+                  <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+                </div>
+              </div>
+            </nav>
+          </div>
+        </div> -->
+        <!-- /top navigation -->
+
+        <!-- page content -->
+        <div class="right_col" role="main">
+          <div>
+            <div class="page-title">
+              <div class="title_left">
+                <h3>&nbsp;KJENG Optimal Route Map</h3>
+              </div>
+              <!-- <div class="title_right">
+                <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+                  <div id=mapPanelList>
+                    <div class="input-group">
+                      <input type="text" id="searchVal" name="searchVal" class="form-control" placeholder="Search for a place ..."  onkeydown="moveFocus('btnConfirm')">
+                      <span class="input-group-btn">
+                        <button id="btnConfirm" name="btnConfirm" class="btn btn-default" type="button"  onclick="search(document.getElementById('searchVal').value);">Search</button>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div> -->
+            </div>
+
+            <div class="clearfix"></div>
+            <div class="row">
+                <div class="x_panel">
+                  <div class="col-md-12 col-sm-12 col-xs-12">
+                  <div class="x_content">
+                        <div id="gmap_canvas" style="width:100%; height:800px;"></div>
+                        <!-- <div id="gmap_canvas"></div> -->
+                    <div id="mapPanelList">
+                  			<!-- <button type="button" id="chkButtonList"><font color="blue"><b>List of Ships</b></font></button> -->
+                        <div class="input-group">
+                          <input type="text" id="searchVal" name="searchVal" class="form-control" placeholder="Search for a place ..."  onkeydown="moveFocus('btnConfirm')">
+                          <span class="input-group-btn">
+                            <button id="btnConfirm" name="btnConfirm" class="btn btn-default" type="button"  onclick="search(document.getElementById('searchVal').value);">Search</button>
+                          </span>
+                        </div>
+                  	</div>
+                    <div id="map_msg" name="map_msg" style="width:100%; height:25px;background-color:#000000;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- <footer> -->
+        <footer class="footer" id="footerWrap">
+            <div class="detail-footer">
+                <div class="footer-top-wrap">
+                    <div class="footer-top footer-top-input">
+                        <div class="footer-tit">Input(common)</div>
+                        <div class="input-item-wrap">
+                        <div class="input-row">
+                            <div>
+                                <span>Departure :</span>
+                                <input type = "text" id="dep" class="input-form" value="pusan" />
+                            </div>
+                            <div>
+                                <span>Destination : </span>
+                                <input type = "text" id="dest" class="input-form" />
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <!--<div>
+                                <span>Layover :</span>
+                                <input type = "text" id="layover" class="input-form" />
+                            </div>-->
+                            <div>
+                                <span>Speed :</span>
+                                <input type = "number" id="speed" class="input-form" value="12" />
+                            </div>
+                            <div>
+                                <span>Routing points :</span>
+                                <ul class="rp-list">
+                                    <li>panama <input type="radio" name="roupoint" value="panama" class="join-btn"></li>
+                                    <li>suez <input type="radio" name="roupoint" value="suez" class="join-btn"></li>
+                                    <li>arc <input type="radio" name="roupoint" value="arc" class="join-btn"></li>
+                                </ul>
+                                <button type="button" class="btn btn-gradient" onclick="searchRoute_db()">Go</button>
+                            </div>
+
+                        </div>
+                    </div>
+                  <!-- <label for = "dest">&nbspLayover:&nbsp;</label> -->
+                </div>
+                    <!-- //.footer-top-input -->
+
+                    <div class="footer-top-result">
+                        <div class="footer-tit">High Light Results</div>
+                        <div class="result-item-wrap">
+                            <div class="result-item">
+                                <div>
+                                    <p class="tit">Total Distance :</p>
+                                    <p id="ttldist" class="value"></p>
+                                </div>
+                                <div>
+                                    <p class="tit">Total Voyage Hour :</p>
+                                    <p id="eta" class="value"></p>
+                                </div>
+                                <!-- <div>
+                                  (Arr : 2021-01-15 05:00)
+                                </div> -->
+                            </div>
+                            <!-- //.result-item1 -->
+                            <div class="result-item">
+                                <div>
+                                    <p class="tit">Calculated UKC :</p>
+                                    <p id="ukcresult" class="value"></p>
+                                </div>
+                                <div>
+                                    (Arr. Date Time: <p id="arrDateTime" class="value"></p>)
+                                </div>
+                            </div>
+                            <!-- //.result-item2 -->
+                            <div class="result-item">
+                                <div>
+                                    <p class="tit">Attained EEXI :</p>
+                                    <p class="value">00<span>(Req : 00)</span></p>
+                                </div>
+                                <div>
+                                    <p class="tit">Attained CII :</p>
+                                    <p class="value">00<span>(Req : 00, B)</span></p>
+                                </div>
+                            </div>
+                            <!-- //.result-item3 -->
+                        </div>
+                    </div>
+                      <!-- //.footer-top-result -->
+                  </div>
+                  <!-- //.footer-top-wrap -->
+
+
+
+            <ul class="tab-wrap" id="myTab" role="tablist">
+              <li class="tab-item active">
+                <a class="tab-item-in" id="dist-tab" data-toggle="tab" href="#dist" role="tab" aria-controls="dist" aria-selected="true">Route Distance</a>
+              </li>
+              <li class="tab-item">
+                <a class="tab-item-in" id="ukc-tab" data-toggle="tab" href="#ukc" role="tab" aria-controls="ukc" aria-selected="false">Under Keel Clearance</a>
+              </li>
+              <li class="tab-item">
+                <a class="tab-item-in" id="eexi-tab" data-toggle="tab" href="#eexi" role="tab" aria-controls="eexi" aria-selected="false">EEXI / CII</a>
+              </li>
+            </ul>
+            <div class="tab-content" id="contentWaypoint">
+              <div class="tab-pane fade in active" id="dist" role="tabpanel" aria-labelledby="dist-tab">
+                distance
+              </div>
+              <div class="tab-pane fade" id="ukc" role="tabpanel" aria-labelledby="ukc-tab">
+                <div class="x_content">
+                  <div class="col-md-6 col-sm-6">
+                    <form name="ukcinput" id="ukcinput">
+                      <table class="table table-bordered tb-basic">
+                          <thead>
+                              <tr>
+                                  <th colspan="5" class="footer-tit">Input(UKC)</th>
+                                  <th class="uck-cl-btn"><button type="button" class="btn btn-gradient" onclick="calUKC()">UKC Calculation</button></th>
+                              </tr>
+                          </thead>
+                        <tbody>
+                          <tr>
+                            <td>Arr. Date</td>
+                            <td><input type="text" id="arrDate" style="width:110px;" value="" class="input-form"></td>
+                            <td>Arr. Time</td>
+                            <td><input type="text" id="arrTime" style="width:110px;" value="05:00" class="input-form"></td>
+                            <td>Ton Per cm</td>
+                            <td><input type="text" id="tpc" style="width:110px;" value="14.18"></td>
+                          </tr>
+                          <tr>
+                            <td>Draft</td>
+                            <td align="center">Forward</td>
+                            <td align="center">Mid</td>
+                            <td align="center">After</td>
+                            <td>Density</td>
+                            <td><input type="text" id="density" style="width:110px;" value="1.025"></td>
+                          </tr>
+                          <tr>
+                            <th>Departure</th>
+                            <td><input type="text" id="depfore" style="width:110px;" value="5.75"></td>
+                            <td><input type="text" id="depmid" style="width:110px;" value="5.88"></td>
+                            <td><input type="text" id="depaft" style="width:110px;" value="6.00"></td>
+                            <td>Displacement</td>
+                            <td><input type="text" id="disp" style="width:110px;" value="7019"></td>
+                          </tr>
+                          <tr>
+                            <th>Arrival</th>
+                            <td><input type="text" id="arrfore" style="width:110px;" value="5.75"></td>
+                            <td><input type="text" id="arrmid" style="width:110px;" value="5.88"></td>
+                            <td><input type="text" id="arraft" style="width:110px;" value="6.00"></td>
+                            <th>Waterline</th>
+                            <td class="wa">
+                                <div><span>length :</span> <input type="text" id="len" style="width:50px;" value="94.1"> </div>
+                                <div><span>width :</span> <input type="text" id="bre" style="width:50px;" value="16.2"></div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </form>
+                  </div>
+                  <div class="col-md-6 col-sm-6">
+                    <div id="ukcoutput" class="ukc-output">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-pane fade" id="eexi" role="tabpanel" aria-labelledby="eexi-tab">
+                <div class="x_content">
+                  <div class="col-md-6 col-sm-6">
+                    <form name="eexiinput" id="eexiinput">
+                      <table class="table table-bordered">
+                        <tbody>
+                          <tr>
+                            <td colspan="2"><h5>Input for EEXI</h5></td>
+                            <td>Ship Type</td>
+                            <td>
+                              <select id="shiptype" style="width:90%" class="select2_single form-control" tabindex="-1">
+                                <option value="">Select</option>
+                                <option value="BC">Bulk Carrier</option>
+                                <option value="CC">Combination Carrier</option>
+                                <option value="CS">Container Ship</option>
+                                <option value="CP">Cruise Passenger Ship</option>
+                                <option value="GC">Gas Carrier</option>
+                                <option value="GS">GenerAL Cargo Ship</option>
+                                <option value="LC">LNG Carrier</option>
+                                <option value="RC">Refrigerated Cargo Carrier</option>
+                                <option value="RS">Ro-Ro Cargo Ship</option>
+                                <option value="RV">Ro-Ro Cargo Ship (Vehicle Carrier)</option>
+                                <option value="RP">Ro-Ro Passenger Ship</option>
+                                <option value="TK">Tanker</option>
+                              </select>
+                            </td>
+                            <td colspan="2" rowspan="5"><button type='button' class='btn btn-primary' onclick="calEEXI()">EEXI Calculation</button><br />Attained EEXI / Required EEXI</td>
+                          </tr>
+                          <tr>
+                            <td style="width:25%">DWT</td>
+                            <td style="width:25%"><input type="text" id="dwt" style="width:110px;" value="53329" class="input-form"></td>
+                            <td style="width:25%">Gross Ton</td>
+                            <td style="width:25%"><input type="text" id="grosst" style="width:110px;" value="" class="input-form"></td>
+                          </tr>
+                          <tr>
+                            <td>Ref. Speed</td>
+                            <td><input type="text" id="refspeed" style="width:110px;" value="15" class="input-form"></td>
+                            <td>Max rated Power(MCR)</td>
+                            <td><input type="text" id="mcr" style="width:110px;" value="24000"></td>
+                          </tr>
+                          <tr>
+                            <tr>
+                              <td>Type of Fuel</td>
+                              <td colspan="3">
+  														  <input type="checkbox" name="fueltype" class="flat" checked="checked" value="dgo"> Diesel/Gas Oil
+                                <input type="checkbox" name="fueltype" class="flat" value="lfo"> Light Fuel Oil(LFO)
+                                <input type="checkbox" name="fueltype" class="flat" value="hfo"> Heavy Fuel Oil(HFO)
+                                <input type="checkbox" name="fueltype" class="flat" value="lpg"> LPG - Propane
+                                <input type="checkbox" name="fueltype" class="flat" value="but"> LPG - Butane
+                                <input type="checkbox" name="fueltype" class="flat" value="lng"> L N G
+                                <input type="checkbox" name="fueltype" class="flat" value="met"> Methanol
+                                <input type="checkbox" name="fueltype" class="flat" value="eth"> Ethanol
+                              </td>
+                            </tr>
+                          </tr>
+                          <tr>
+                            <td>M/E Fuel SFC</td>
+                            <td><input type="text" id="mesfc" style="width:110px;" value="171"></td>
+                            <td>A/E Fuel SFC</td>
+                            <td><input type="text" id="aesfc" style="width:110px;" value="200"></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </form>
+                  </div>
+                  <div class="col-md-6 col-sm-6">
+                    <form name="ciiinput" id="ciiinput">
+                      <table class="table table-bordered">
+                        <tbody>
+                          <tr>
+                            <td colspan="4"><h5>Input for CII</h5></td>
+                            <td colspan="2" rowspan="5"><button type='button' class='btn btn-primary' onclick="calCII()">CII Calculation</button><br />Attained CII / Required CII</td>
+                          </tr>
+                          <tr>
+                            <td>Ship Type</td>
+                            <td>
+                              <select class="select2_single form-control" tabindex="-1">
+                                <option></option>
+                                <option value="BC">Bulk Carrier</option>
+                                <option value="CC">Combination Carrier</option>
+                                <option value="CS">Container Ship</option>
+                                <option value="CP">Cruise Passenger Ship</option>
+                                <option value="GC">Gas Carrier</option>
+                                <option value="GS">GenerAL Cargo Ship</option>
+                                <option value="LC">LNG Carrier</option>
+                                <option value="RC">Refrigerated Cargo Carrier</option>
+                                <option value="RS">Ro-Ro Cargo Ship</option>
+                                <option value="RV">Ro-Ro Cargo Ship (Vehicle Carrier)</option>
+                                <option value="RP">Ro-Ro Passenger Ship</option>
+                                <option value="TK">Tanker</option>
+                              </select>
+                            </td>
+                            <td>DWT at Summer Draft</td>
+                            <td><input type="text" id="arrTime" style="width:110px;" value="7200" class="input-form"></td>
+                            <!-- <td>Ton Per cm</td>
+                            <td><input type="text" id="tpc" style="width:110px;" value="14.18"></td> -->
+                          </tr>
+                          <tr>
+                            <td>Type of Fuel</td>
+                            <td colspan="3">
+														  <input type="checkbox" class="flat" checked="checked"> Diesel/Gas Oil
+                              <input type="checkbox" class="flat" > Light Fuel Oil(LFO)
+                              <input type="checkbox" class="flat" > Heavy Fuel Oil(HFO)
+                              <input type="checkbox" class="flat" > LPG - Propane
+                              <input type="checkbox" class="flat" > LPG - Butane
+                              <input type="checkbox" class="flat" > L N G
+                              <input type="checkbox" class="flat" > Methanol
+                              <input type="checkbox" class="flat" > Ethanol
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>The Total Distance Travelled(N.M./year)</td>
+                            <td><input type="text" id="depfore" style="width:110px;" value="140,000"></td>
+                            <td>Reduction Factor</td>
+                            <td><input type = "number" id="year" style="width:150px;" value="2021" /></td>
+
+
+                            <!-- <td>Displacement</td>
+                            <td><input type="text" id="disp" style="width:110px;" value="7019"></td> -->
+                          </tr>
+                        </tbody>
+                      </table>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+           <button type="button" class="footer-toggle-btn" id="toggltBtn">
+                <span class="footer-close">Close</span>
+                <span class="footer-show">Show</span>
+            </button>
+
+        </footer>
+
+        <!-- /page content -->
+
+        <!-- footer content -->
+      </div>
+    </div>
+
+    <script>
+        // footer 접기 펴기
+        var fw = document.getElementById('footerWrap');
+
+        document.getElementById('toggltBtn').onclick = function() {
+          this.classList.toggle('active');
+          fw.classList.toggle('active');
+        }
+
+        // 왼쪽메뉴 열렸을 때 footer 사이즈
+        document.getElementById('menu_toggle').onclick = function() {
+          fw.classList.toggle('active-width');
+        }
+    </script>
+
+    <script src="../public/scripts/commonmap.js"></script>
+
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-2.1.3.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
+
+    <script type="text/javascript">
+    // var FactoryMapData = [];
+    $(document).ready(function(){
+      //Sidemenu default collapse
+      $('body').removeClass('nav-md').addClass('nav-sm');
+      $('.left_col').removeClass('scroll-view').removeAttr('style');
+
+      // $('#sidebar-menu li').removeClass('active');
+      // $('#sidebar-menu li ul').slideUp();
+      // $("#arrDate").datepicker();
+      $("#arrDate").datepicker({
+        dateFormat:'yy-mm-dd',
+      });
+      $('#arrDate').datepicker().datepicker('setDate','today');
+      // $("#arrTime").timepicker({
+      //   step:10,
+      //   timeFormat: "H:i"
+      // });
+
+      // alert($("input:checkbox[name=chkFactory]").is(":checked"));
+      // if($("input:checkbox[name=chkFactory]").is(":checked") == true) {
+        // $("input:checkbox[id='chkFactory']").prop("checked", true);
+        // $("input:checkbox[id='chkMine']").prop("checked", true);
+        // $("input:checkbox[id='chkVessel']").prop("checked", true);
+      // alert($("input:checkbox[id='chkFactory']"));
+      // ViewFactory($("input:checkbox[id='chkFactory']"));
+    // }
+      // ViewMine();
+      // ViewShip();
+      // alert(NearSrc);
+      // $("#dialogList").dialog("open");
+    });
+
+
+//     function iframeAutoResize(h){
+// //      alert(h);
+//       if(h == null){
+//         return false;
+//       }
+// //      (h).height = "0px";
+// //      var iframeHeight = (h).contentWindow.document.body.scrollHeight;
+// //      (h).height = iframeHeight + 15;
+//     }
+//     $(function(){
+//     	$("iframe.myFrame").load(function(){ //iframe 컨텐츠가 로드 된 후에 호출됩니다.
+//
+// //    		var frame = $(this).get(0);
+// //    		var doc = (frame.contentDocument) ? frame.contentDocument : frame.contentWindow.document;
+// //    		$(this).height(doc.body.scrollHeight);
+// //    		$(this).width(doc.body.scrollWidth);
+//
+//     	});
+//     });
+    </script>
+
+    <script>
+      $("#sidebar").load("../public/sidemenu.html");
+    </script>
+
+    <!-- FastClick -->
+    <script src="../vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="../vendors/nprogress/nprogress.js"></script>
+
+  </body>
+</html>

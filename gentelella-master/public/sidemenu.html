@@ -1,0 +1,110 @@
+<head>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+  <script>
+  $(function() {
+    var availableTags = [
+      "Algeciras | SPAIN",
+      "Ambarli | TURKEY",
+      "Antwerp | BELGIUM",
+      "Auckland | NEW ZEALAND",
+      "Balboa | PANAMA",
+      "Bandar Abbas | IRAN",
+      "Barcelona | SPAIN",
+      "Bremerhaven | GERMANY",
+      "Brisbane | AUSTRALIA",
+      "Buenos Aires | ARGENTINA",
+      "Cape Town | SOUTH AFRICA",
+      "Colombo | SRI LANKA",
+      "Dalian | CHINA",
+      "Dubai Ports | UAE",
+      "Durban | SOUTH AFRICA",
+      "Felixstowe | UNITED KINGDOM",
+      "Gioia Taur | ITALY",
+      "Guangzhou | CHINA",
+      "Hamburg | GERMANY",
+      "hampton roads | UNITED STATES",
+      "Ho Chi Minh | VIETNAM",
+      "HongKong | CHINA",
+      "Houston | UNITED STATES",
+      "Jawaharlal Nehru Port | INDIA",
+      "Jeddah | SAUDI ARABIA",
+      "Kaohsiung | TAIWAN PROVINCE OF CHINA",
+      "Klang | MALAYSIA",
+      "Kingston | JAMAICA",
+      "Kobe | JAPAN",
+      "Laem Chabang | THAILAND",
+      "Le Havre | FRANCE",
+      "long beach | UNITED STATES",
+      "los angelis | UNITED STATES",
+      "Manila | PHILIPPINES",
+      "Marsaxlokk | MALTA",
+      "Melbourne | AUSTRALIA",
+      "Nagoya | JAPAN",
+      "new york | UNITED STATES",
+      "Ningbo | CHINA",
+      "oakland | UNITED STATES",
+      "Osaka | JAPAN",
+      "Port Everglades | UNITED STATES",
+      "Port Said | EGYPT",
+      "Qingdao | CHINA",
+      "Rotterdam | NETHERLANDS",
+      "Salalah | OMAN",
+      "Santos | BRAZIL",
+      "Savannah | UNITED STATES",
+      "Shahid Rajaee | IRAN",
+      "Shanghai | CHINA",
+      "Shenzhen | CHINA",
+      "Singapore | SINGAPORE",
+      "South Louisiana | UNITED STATES",
+      "Sydney | AUSTRALIA",
+      "Tanjung Pelepas | MALAYSIA",
+      "Tanjung Priok | INDONESIA",
+      "Tianjin | CHINA",
+      "Tokyo | JAPAN",
+      "Valencia | SPAIN",
+      "Valparaiso | CHILE",
+      "vancouver | CANADA",
+      "Yokohama | JAPAN",
+      "Zhangjiagang | CHINA",
+    ];
+    $('#dest').focus(function(){
+      $(this).val("");
+    });
+
+    $( "#dest" ).autocomplete({
+      source: availableTags
+    });
+  } );
+  </script>
+</head>
+
+<div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+  <div class="menu_section">
+    <h3>Optimal Route</h3>
+    <ul class="nav side-menu">
+      <li><a href="/"><i class="fa fa-long-arrow-right"></i> Distance </a>
+      </li>
+      <li><a href="/ukc"><i class="fa fa-anchor" aria-hidden="true"></i> UKC </a>
+      </li>
+      <li><a href="/eexi"><i class="fa fa-area-chart" aria-hidden="true"></i> EEXI </a>
+      </li>
+    </ul>
+  </div>
+  <div class="menu_section">
+    <h3>System Admin</h3>
+    <ul class="nav side-menu">
+      <li><a href="/statistics"><i class="fa fa-bar-chart" aria-hidden="true"></i> Statistics </a>
+      </li>
+      <li><a href="/feedback"><i class="fa fa-commenting-o" aria-hidden="true"></i> Feedback </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- Bootstrap -->
+<script src="../vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme Scripts -->
+<script src="../build/js/custom.min.js"></script>
