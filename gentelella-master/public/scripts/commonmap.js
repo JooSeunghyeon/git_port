@@ -729,11 +729,11 @@ function searchRoute_db(){
 
         if(i==0 || i==obj.length-1){
           // alert(i);
-          if(i == 0){ // 출발지
+          if(i == 0){
               var iurl = "http://maps.google.com/mapfiles/ms/icons/red-dot.png";
               var text = "Dep: " + dep;
           }
-          else if(i==obj.length-1){ // 도착지
+          else if(i==obj.length-1){
               var iurl = "http://maps.google.com/mapfiles/ms/icons/green-dot.png";
               var text = "Dest: "+dest;
           }
@@ -755,10 +755,11 @@ function searchRoute_db(){
             map: gmap,
             draggable: true,
             // animation: google.maps.Animation.DROP,
-            title: "waypoint "+i+"\nlat: "+obj[i].lat+"\nlng: "+obj[i].lng,
+            title: "waypoint "+i+"\nlat: "+obj[i].lat+"\nlng: "+obj[i].lng+"\ncog: "+obj[i].crsnext.toFixed(0)+"\nttl dist: "+(obj[i].accdist/1.852).toFixed(2)+"miles",
             icon : {
               path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
               scale: 3,
+              rotation: obj[i].crsnext,
               strokeColor: "#000069",
               strokeWeight: 2,
               fillColor: "#28288C",
@@ -767,12 +768,17 @@ function searchRoute_db(){
           });
         }
         Waypoints.push(marker);
-        //var crsnext = fillzero(3,obj[i].crsnext.toFixed(0));
+        var crsnext = fillzero(3,obj[i].crsnext.toFixed(0));
         tablehtml = tablehtml +
                     `<tr>
                       <td>`+i+`</td>
                       <td>`+obj[i].lat+`</td>
                       <td>`+obj[i].lng+`</td>
+                      <td>`+crsnext+`</td>
+                      <td>`+(obj[i].distnext).toFixed(1)+`</td>
+                      <td>`+(obj[i].accdist).toFixed(1)+`</td>
+                      <td>`+((ttldist-obj[i].accdist)).toFixed(1)+`</td>
+                      <td>`+(((ttldist-obj[i].accdist))/$('#speed').val()).toFixed(2)+`</td>
                       </tr>`;
       }
       // alert("table:"+tablehtml);
@@ -848,7 +854,7 @@ function searchRoute_db(){
 }
 
 function getWaypoints(lat_dep,lng_dep,lat_des,lng_des){
-   alert("getWaypoints"+lat_dep+","+lng_dep+","+lat_des+","+lng_des);
+  // alert(lat_dep+","+lng_dep+","+lat_des+","+lng_des);
 
   for(var i =0;i< Waypoints.length; i++){
     Waypoints[i].setMap(null);
@@ -871,18 +877,19 @@ function getWaypoints(lat_dep,lng_dep,lat_des,lng_des){
       var infoLatLng = null;
       for(var i=0; i<obj.length; i++){
         var oneLatLng = new google.maps.LatLng(obj[i].lat, obj[i].lng);
-        //if(i==obj.length-2){
-        //  infoLatLng = oneLatLng;
-        //}
+        if(i==obj.length-2){
+          infoLatLng = oneLatLng;
+        }
         var marker = new google.maps.Marker({
           position: oneLatLng,
           map: gmap,
           draggable: true,
           // animation: google.maps.Animation.DROP,
-          title: "waypoint "+i+"\nlat: "+obj[i].lat+"\nlng:"+obj[i].lng,
+          title: "waypoint "+i+"\nlat: "+obj[i].lat+"\nlng: "+obj[i].lng+"\ncog: "+obj[i].azi+"\nttl dist: "+obj[i].dis/1000+"Kms",
           icon : {
             path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
             scale: 3,
+            rotation: obj[i].azi,
             strokeColor: "#000069",
             strokeWeight: 2,
             fillColor: "#28288C",

@@ -14,9 +14,9 @@ const {OperationHelper} = require('apac');
 
 var client = mysql.createConnection({
 //  host: '52.79.229.96',
-  host: '192.168.1.130',
-  user: 'jooykim',
-  password: 'jooykim!',
+  host: '192.168.1.126',
+  user: 'root',
+  password: 'wntmdgus1192!',
   database: 'oroute',
   multipleStatements: true,
   dateStrings: 'date',
@@ -30,9 +30,9 @@ client.connect((err) => {
 
 var sync_conn = new sync_mysql({
 //  host: '52.79.229.96',
-  host: '192.168.1.130',
-  user: 'jooykim',
-  password: 'jooykim!',
+  host: '192.168.1.126',
+  user: 'root',
+  password: 'wntmdgus1192!',
   database: 'oroute',
   dateStrings: 'date',
 });
@@ -87,10 +87,11 @@ app.get('/getroute',function(req,res){
   var dep = req.query.dep;
   var dest = req.query.dest;
   console.log(dep + "," + dest);
-  var q1 = 'select distinct roupoint from waypoints where groupidx = (select groupidx from routes where depportnm = "'+dep+'" and destportnm = "'+dest+'");';
+  //var q1 = 'select distinct roupoint from waypoints where groupidx = (select groupidx from routes where depportnm = "'+dep+'" and destportnm = "'+dest+'");';
+  var q1 = 'select distinct roupoint from oroute.waypoint where groupidx = (select groupidx from oroute.routes where depportnm = "'+dep+'" and destportnm = "'+dest+'");';
   client.query(q1,function(error, result){
-    // console.log('res:'+JSON.stringify(result));
-    // console.log('res:'+result[0].roupoint);
+    console.log('res:'+JSON.stringify(result));
+    //console.log('res[0]:'+result[0].roupoint);
     var roupoint = 'n';
     for(var i=0;i< result.length; i++){
       roupoint = result[i].roupoint;
@@ -108,8 +109,10 @@ app.get('/getroute',function(req,res){
       }
     }
     if(roupoint){
+      console.log("roupoint : " + roupoint);
       //var queryStr = 'select seq, lat, lng, distnext, accdist, crsnext from waypoints where groupidx = (select groupidx from routes where depportnm = "'+dep+'" and destportnm = "'+dest+'") and roupoint="'+ roupoint +'";';
-      var queryStr = 'select seq, lat, lng from best_route where point = "'+dest+'" order by seq;';
+      //var queryStr = 'select seq, lat, lng from best_route where point = "'+dest+'" order by seq;';
+      var queryStr = 'select seq, lat, lng, distnext, accdist, crsnext from oroute.waypoint where groupidx = (select groupidx from oroute.routes where depportnm = "'+dep+'" and destportnm = "'+dest+'") and roupoint="'+ roupoint +'";';
       client.query( queryStr , function (error, result) {
         if(error) console.log(error);
         console.log('res1:'+JSON.stringify(result));
