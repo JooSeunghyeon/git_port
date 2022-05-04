@@ -718,6 +718,7 @@ function searchRoute_db(){
       var pathCoords = [];
       var tablehtml = "";
       var obj = JSON.parse(xhttp.responseText);
+      console.log("obj : " + JSON.stringify(obj));
       // var infoLatLng = null;
       var lastlen = obj.length-1;
       var ttldist = obj[lastlen].accdist;
@@ -725,6 +726,7 @@ function searchRoute_db(){
       for(var i=0; i<obj.length; i++){
 
         var oneLatLng = new google.maps.LatLng(obj[i].lat, obj[i].lng);
+        var symbol = 'M 0,-4 1.5,-2 1.5,4 -1.5,4 -1.5,-2 z'; // 마커 모양 
         pathCoords.push(oneLatLng);
 
         if(i==0 || i==obj.length-1){
@@ -757,16 +759,20 @@ function searchRoute_db(){
             // animation: google.maps.Animation.DROP,
             title: "waypoint "+i+"\nlat: "+obj[i].lat+"\nlng: "+obj[i].lng+"\ncog: "+obj[i].crsnext.toFixed(0)+"\nttl dist: "+(obj[i].accdist/1.852).toFixed(2)+"miles",
             icon : {
-              path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-              scale: 3,
-              rotation: obj[i].crsnext,
-              strokeColor: "#000069",
-              strokeWeight: 2,
-              fillColor: "#28288C",
-              fillOpacity: 0.3,
+              //path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, // 화살표 
+              path: symbol, // 배 모양 
+              scale: 2, // 마커 크기 
+              //rotation: obj[i].crsnext, 
+              rotation: obj[i].lat * obj[i].lng, // 각도 
+              strokeColor: "#000069", // 테두리 색
+              strokeWeight: 1, // 테두리 두께
+              fillColor: "#28288C", // 반경 색
+              fillOpacity: 0.6, // 반경 투명도
             }
+            
           });
         }
+        console.log("obj[i].crsnext : "+obj[i].crsnext);
         Waypoints.push(marker);
         var crsnext = fillzero(3,obj[i].crsnext.toFixed(0));
         tablehtml = tablehtml +
